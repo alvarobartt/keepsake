@@ -3,8 +3,8 @@ from pathlib import Path
 import boto3
 import botocore
 from google.cloud import storage as google_storage
-from azure.common import AzureException
-from azure.storage.blob import BlockBlobService
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.parent
 
@@ -54,6 +54,13 @@ def path_exists(repository, path):
         blob = bucket.blob(str(path))
         return blob.exists()
     if backend == "abs":
-        service = BlockBlobService()
-        # blob = 
-        return blob.exists()
+        # https://azuresdkdocs.blob.core.windows.net/$web/python/azure-identity/1.3.0/index.html#authenticating-with-defaultazurecredential
+        credential = DefaultAzureCredential()
+        account_url = os.environ["STORAGE_BLOB_URL"]
+        try:
+            blob_service_client = BlobServiceClient(account_url, credential=credential) # https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python
+            container_client = blob_service_client.get_container_client(root) # https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.containerclient?view=azure-python
+            blob_client = container_client.get_blob_client(str(path)) # https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.containerclient?view=azure-python#get-blob-client-blob--snapshot-none-
+            return blob_client.exists() # https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.containerclient?view=azure-python#exists---kwargs-
+        except Exception as e:
+            raise e
