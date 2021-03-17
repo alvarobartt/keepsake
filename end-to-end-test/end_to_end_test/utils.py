@@ -3,6 +3,8 @@ from pathlib import Path
 import boto3
 import botocore
 from google.cloud import storage as google_storage
+from azure.common import AzureException
+from azure.storage.blob import BlockBlobService
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.parent
 
@@ -20,10 +22,10 @@ def path_exists(repository, path):
     """
     Check that a path exists in a specific repository.
     repository has the format backend://root(/parent_folder),
-    where backend can be file, s3, or gs.
+    where backend can be file, s3, gs, or abs.
     """
     backend, root = repository.split("://")
-    assert backend in ("file", "s3", "gs")
+    assert backend in ("file", "s3", "gs", "abs")
 
     if backend == "file":
         return (Path(root) / path).exists()
@@ -50,4 +52,8 @@ def path_exists(repository, path):
         storage_client = google_storage.Client()
         bucket = storage_client.bucket(root)
         blob = bucket.blob(str(path))
+        return blob.exists()
+    if backend == "abs":
+        service = BlockBlobService()
+        # blob = 
         return blob.exists()
