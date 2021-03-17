@@ -89,7 +89,7 @@ Run this to run the test suite:
 
 This will run the three test suites in the `go/`, `python/`, and `end-to-end-tests/` directories. You can also run `make test` in those directories to run the test suites individually, after running `make develop` in the root directory to install everything correctly.
 
-There are also some additional tests that hit Google Cloud and AWS. You first need to be signed into the `gcloud` and `aws` CLIs, and using test project/account. Then, run:
+There are also some additional tests that hit Google Cloud, AWS, and Azure Blob Storage. You first need to be signed into the `gcloud`, `aws`, and `az` CLIs, and using test project/account. Then, run:
 
     make test-external
 
