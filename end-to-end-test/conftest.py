@@ -6,12 +6,15 @@ import pytest
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 from google.cloud import storage as google_storage
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
 
 
 class TempBucketFactory:
     def __init__(self):
         self.s3_bucket_names = []
         self.gs_bucket_names = []
+        self.abs_container_names = []
 
     def make_name(self):
         return "keepsake-test-endtoend-" + "".join(
@@ -28,6 +31,11 @@ class TempBucketFactory:
         self.gs_bucket_names.append(name)
         return name
 
+    def abs(self):
+        name = self.make_name()
+        self.abs_container_names.append(name)
+        return name
+
     def cleanup(self):
         if self.s3_bucket_names:
             s3 = boto3.resource("s3")
@@ -42,6 +50,20 @@ class TempBucketFactory:
                 for blob in bucket.list_blobs():
                     blob.delete()
                 bucket.delete()
+        if self.abs_container_names:
+            # This credential first checks environment variables for configuration as described above.
+            # If environment configuration is incomplete, it will try managed identity.
+            credential = DefaultAzureCredential()
+            account_url = os.environ["STORAGE_BLOB_URL"]
+
+            blob_service_client = BlobServiceClient(account_url, credential=credential)
+
+            for container_name in self.abs_container_names:
+                container_client = blob_service_client.get_container_client(container_name)
+                if container_client.exists():
+                    for blob in container.list_blobs():
+                        container_client.delete_blob(blob, delete_snapshots="include")
+                    container_client.delete_container()
 
 
 @pytest.fixture(scope="function")
