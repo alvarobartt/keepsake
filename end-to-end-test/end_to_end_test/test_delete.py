@@ -18,13 +18,15 @@ from .utils import path_exists, get_env
     ],
 )
 def test_delete(
-    repository_backend, use_root, tmpdir, temp_bucket_factory, tmpdir_factory
+    repository_backend, use_root, tmpdir, temp_bucket_factory, temp_container_factory, tmpdir_factory
 ):
     tmpdir = str(tmpdir)
     if repository_backend == "s3":
         repository = "s3://" + temp_bucket_factory.s3()
     if repository_backend == "gcs":
         repository = "gs://" + temp_bucket_factory.gs()
+    if repository_backend == "abs":
+        repository = "abs://" + temp_container_factory.abs()
     elif repository_backend == "file":
         repository = "file://" + str(tmpdir_factory.mktemp("repository"))
 

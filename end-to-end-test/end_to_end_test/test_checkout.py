@@ -16,16 +16,20 @@ from .utils import get_env
         pytest.param("gcs", True, marks=pytest.mark.external),
         pytest.param("s3", False, marks=pytest.mark.external),
         pytest.param("s3", True, marks=pytest.mark.external),
+        pytest.param("abs", False, marks=pytest.mark.external),
+        pytest.param("abs", True, marks=pytest.mark.external),
     ],
 )
 def test_checkout(
-    repository_backend, use_root, tmpdir, temp_bucket_factory, tmpdir_factory
+    repository_backend, use_root, tmpdir, temp_bucket_factory, temp_container_factory, tmpdir_factory
 ):
     tmpdir = str(tmpdir)
     if repository_backend == "s3":
         repository = "s3://" + temp_bucket_factory.s3()
     if repository_backend == "gcs":
         repository = "gs://" + temp_bucket_factory.gs()
+    if repository_backend == "abs":
+        repository = "abs://" + temp_container_factory.abs()
     elif repository_backend == "file":
         repository = "file://" + str(tmpdir_factory.mktemp("repository"))
 
