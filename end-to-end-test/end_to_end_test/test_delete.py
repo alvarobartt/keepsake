@@ -15,6 +15,8 @@ from .utils import path_exists, get_env
         pytest.param("gcs", True, marks=pytest.mark.external),
         pytest.param("s3", False, marks=pytest.mark.external),
         pytest.param("s3", True, marks=pytest.mark.external),
+        pytest.param("abs", False, marks=pytest.mark.external),
+        pytest.param("abs", True, marks=pytest.mark.external),
     ],
 )
 def test_delete(
