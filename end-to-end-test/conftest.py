@@ -14,7 +14,6 @@ class TempBucketFactory:
     def __init__(self):
         self.s3_bucket_names = []
         self.gs_bucket_names = []
-        self.abs_container_names = []
 
     def make_name(self):
         return "keepsake-test-endtoend-" + "".join(
@@ -31,11 +30,6 @@ class TempBucketFactory:
         self.gs_bucket_names.append(name)
         return name
 
-    def abs(self):
-        name = self.make_name()
-        self.abs_container_names.append(name)
-        return name
-
     def cleanup(self):
         if self.s3_bucket_names:
             s3 = boto3.resource("s3")
@@ -50,6 +44,32 @@ class TempBucketFactory:
                 for blob in bucket.list_blobs():
                     blob.delete()
                 bucket.delete()
+
+
+@pytest.fixture(scope="function")
+def temp_bucket_factory() -> TempBucketFactory:
+    # We don't create a bucket here so that we can test Keepsake's ability to create
+    # buckets.
+    factory = TempBucketFactory()
+    yield factory
+    factory.cleanup()
+
+
+class TempContainerFactory:
+    def __init__(self):
+        self.abs_container_names = []
+
+    def make_name(self):
+        return "keepsake-test-endtoend-" + "".join(
+            random.choice(string.ascii_lowercase) for _ in range(20)
+        )
+    
+    def abs(self):
+        name = self.make_name()
+        self.abs_container_names.append(name)
+        return name
+
+    def cleanup(self):
         if self.abs_container_names:
             # This credential first checks environment variables for configuration as described above.
             # If environment configuration is incomplete, it will try managed identity.
@@ -67,10 +87,10 @@ class TempBucketFactory:
 
 
 @pytest.fixture(scope="function")
-def temp_bucket_factory() -> TempBucketFactory:
-    # We don't create bucket here so we can test Keepsake's ability to create
-    # buckets.
-    factory = TempBucketFactory()
+def temp_container_factory() -> TempContainerFactory:
+    # We don't create a container here so that we can test Keepsake's ability to create
+    # containers.
+    factory = TempContainerFactory()
     yield factory
     factory.cleanup()
 
